@@ -16,3 +16,11 @@ Now simply setup the cluster by using Vagrant:
 ```bash
 vagrant up
 ```
+
+## Useful commands
+
+| Command                  | Description                             |
+|--------------------------|-----------------------------------------|
+| `kubectl get nodes`      | List all nodes.                         |
+| `kubectl get pods`       | List all pods.                          |
+| `kubectl describe nodes` | Get a verbose description of all nodes. |

@@ -1,0 +1,103 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+  - name: Add docker-ce repository
+    yum_repository:
+      name: docker-ce
+      description: "docker-ce repository"
+      baseurl: https://download.docker.com/linux/centos/8/x86_64/stable/
+      gpgcheck: false
+
+  - name: Add kubernetes repository
+    yum_repository:
+      name: kubernetes
+      description: "Kubernetes repository"
+      baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      gpgcheck: false
+
+  - name: Install docker-ce
+    yum:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - docker-ce
+    notify:
+      - docker status
+
+  - name: Add vagrant user to docker group
+    user:
+      name: vagrant
+      groups: docker
+      append: true
+
+# Kubelet will not start if swap is enabled; disable swap.
+
+  - name: Remove swapfile from /etc/fstab
+    mount:
+      name: "{{ item }}"
+      fstype: swap
+      state: absent
+    with_items:
+      - swap
+      - none
+
+  - name: Disable swap
+    command: swapoff -a
+    when: ansible_swaptotal_mb > 0
+
+  - name: Install Kubernetes binaries
+    yum:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+  - name: Configure node ip
+    lineinfile:
+      path: /etc/default/kubelet
+      line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
+      create: yes
+
+  - name: Restart kubelet
+    service:
+      name: kubelet
+      daemon_reload: yes
+      enabled: true
+      state: restarted
+
+  - name: Ensure docker daemon is running
+    service:
+      name: docker
+      enabled: true
+      state: started
+
+  - name: Initialize the Kubernetes cluster using kubeadm
+    command: kubeadm init --apiserver-advertise-address="10.13.37.10" --apiserver-cert-extra-sans="10.13.37.10"  --node-name k8s-master --pod-network-cidr=10.13.37.0/24
+
+  - name: Setup kubeconfig for vagrant user
+    command: "{{ item }}"
+    with_items:
+     - mkdir -p /home/vagrant/.kube
+     - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+     - chown vagrant:vagrant /home/vagrant/.kube/config
+
+  - name: Generate join command
+    command: kubeadm token create --print-join-command
+    register: join_command
+
+  - name: Copy join command to local file
+    local_action: copy content={{ join_command.stdout_lines[0] }} dest=./join-command
+    become: false
+
+  handlers:
+    - name: docker status
+      service: name=docker state=started
+

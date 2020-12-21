@@ -5,16 +5,16 @@ three CentOS 8 nodes: one master and two worker nodes.
 
 ## Install
 
-Install any missing dependencies using your favorite package manager:
+Install any missing dependencies:
 
 ```bash
-brew install vagrant virtualbox ansible
+make deps
 ```
 
-Now simply setup the cluster by using Vagrant:
+Now simply setup the cluster:
 
 ```bash
-vagrant up
+make cluster
 ```
 
 ## Useful commands

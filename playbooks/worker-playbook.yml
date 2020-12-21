@@ -60,19 +60,32 @@
         - kubeadm
         - kubectl
 
+  - name: Check if kubelet has been configured
+    stat:
+      path: /etc/default/kubelet
+    register: kubelet_configured
+
   - name: Configure node ip
     lineinfile:
       path: /etc/default/kubelet
       line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
       create: yes
+    when: not kubelet_configured.stat.exists
 
   - name: Restart kubelet
     service:
       name: kubelet
       daemon_reload: yes
       state: restarted
+    when: not kubelet_configured.stat.exists
 
-  - name: Ensure docker daemon is running
+  - name: Ensure kubelet service is running and enabled
+    service:
+      name: kubelet
+      enabled: true
+      state: started
+
+  - name: Ensure docker daemon is running and enabled
     service:
       name: docker
       enabled: true
@@ -80,9 +93,11 @@
 
   - name: Copy the join command to server location
     copy: src=join-command dest=/tmp/join-command.sh mode=0777
+    when: not kubelet_configured.stat.exists
 
   - name: Join the node to cluster
     command: /bin/sh /tmp/join-command.sh
+    when: not kubelet_configured.stat.exists
 
   handlers:
     - name: docker status

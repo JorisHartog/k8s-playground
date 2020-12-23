@@ -4,8 +4,8 @@ deps:
 	$(PKG_MAN) install vagrant virtualbox ansible kubectl
 
 cluster:
-	rm playbooks/join-command || true
-	vagrant destroy --force
+	find . -type f -name join-command -delete
+	vagrant destroy --force || true
 	vagrant up
 
 provision:
@@ -13,4 +13,4 @@ provision:
 
 .PHONY: clean
 clean:
-	rm playbooks/join-command
+	find . -type f -name join-command -delete

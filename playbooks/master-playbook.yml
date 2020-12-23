@@ -3,6 +3,12 @@
   become: true
   tasks:
 
+  - name: Ensure NetworkManager service is stopped and disabled
+    service:
+      name: NetworkManager
+      enabled: false
+      state: stopped
+
   - name: Add docker-ce repository
     yum_repository:
       name: docker-ce

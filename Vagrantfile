@@ -3,6 +3,7 @@
 
 IMAGE_NAME = "centos/8"
 NUM_WORKERS = 2
+ANSIBLE_VERSION = "2.0"
 
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
@@ -12,6 +13,7 @@ Vagrant.configure("2") do |config|
         master.vm.network "private_network", ip: "10.13.37.10"
         master.vm.hostname = "k8s-master"
         master.vm.provision "ansible" do |ansible|
+            ansible.compatibility_mode = ANSIBLE_VERSION
             ansible.playbook = "playbooks/master-playbook.yml"
             ansible.extra_vars = {
                 node_ip: "10.13.37.10",
@@ -29,6 +31,7 @@ Vagrant.configure("2") do |config|
             worker.vm.network "private_network", ip: "10.13.37.#{i + 99}"
             worker.vm.hostname = "k8s-worker-#{i}"
             worker.vm.provision "ansible" do |ansible|
+                ansible.compatibility_mode = ANSIBLE_VERSION
                 ansible.playbook = "playbooks/worker-playbook.yml"
                 ansible.extra_vars = {
                     node_ip: "10.13.37.#{i + 10}",

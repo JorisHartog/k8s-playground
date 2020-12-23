@@ -10,7 +10,8 @@ Vagrant.configure("2") do |config|
 
     config.vm.define "k8s-master" do |master|
         master.vm.box = IMAGE_NAME
-        master.vm.network "private_network", ip: "10.13.37.10"
+        master.vm.network "private_network", ip: "10.13.37.10",
+            virtualbox__intnet: true
         master.vm.hostname = "k8s-master"
         master.vm.provision "ansible" do |ansible|
             ansible.compatibility_mode = ANSIBLE_VERSION
@@ -28,7 +29,8 @@ Vagrant.configure("2") do |config|
     (1..NUM_WORKERS).each do |i|
         config.vm.define "k8s-worker-#{i}" do |worker|
             worker.vm.box = IMAGE_NAME
-            worker.vm.network "private_network", ip: "10.13.37.#{i + 99}"
+            worker.vm.network "private_network", ip: "10.13.37.#{i + 99}",
+                virtualbox__intnet: true
             worker.vm.hostname = "k8s-worker-#{i}"
             worker.vm.provision "ansible" do |ansible|
                 ansible.compatibility_mode = ANSIBLE_VERSION

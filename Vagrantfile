@@ -26,7 +26,7 @@ Vagrant.configure("2") do |config|
     (1..NUM_WORKERS).each do |i|
         config.vm.define "k8s-worker-#{i}" do |worker|
             worker.vm.box = IMAGE_NAME
-            worker.vm.network "private_network", ip: "10.13.37.#{i + 10}"
+            worker.vm.network "private_network", ip: "10.13.37.#{i + 99}"
             worker.vm.hostname = "k8s-worker-#{i}"
             worker.vm.provision "ansible" do |ansible|
                 ansible.playbook = "playbooks/worker-playbook.yml"
